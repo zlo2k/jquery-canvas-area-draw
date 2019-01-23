@@ -31,7 +31,7 @@
         }
 
         $reset = $('<button type="button" class="btn"><i class="icon-trash"></i>Очистить</button>');
-        $canvas = $('<canvas style="width: 100%">');
+        $canvas = $('<canvas>');
         ctx = $canvas[0].getContext('2d');
 
         image = new Image();
@@ -42,7 +42,7 @@
                     points[i] *= ratio;
                 }
             }
-            $canvas.attr('height', image.height).attr('width', image.width);
+            $canvas.attr('height', image.naturalHeight).attr('width', image.naturalWidth);
             draw();
         };
         $(image).load(resize);
@@ -50,7 +50,7 @@
         if (image.loaded) {
             resize();
         }
-        $canvas.css({background: 'url(' + image.src + ')'});
+        $canvas.css({background: 'url(' + image.src + ')', 'background-size': 'cover'});
 
         $(input).after('<br>', $canvas, '<br>', $reset);
 
