@@ -15,6 +15,7 @@
         var draw, mousedown, stopdrag, move, moveall, resize, reset, rightclick, record;
         var dragpoint;
         var startpoint = false;
+        var ratio = 1;
 
         settings = $.extend({
             imageUrl: $(this).attr('data-image-url')
@@ -30,11 +31,17 @@
         }
 
         $reset = $('<button type="button" class="btn"><i class="icon-trash"></i>Очистить</button>');
-        $canvas = $('<canvas>');
+        $canvas = $('<canvas style="width: 100%">');
         ctx = $canvas[0].getContext('2d');
 
         image = new Image();
         resize = function () {
+            if ($canvas[0].clientWidth !== image.naturalWidth) {
+                ratio = image.naturalWidth / $canvas[0].clientWidth;
+                for (var i = 0; i < points.length; i++) {
+                    points[i] *= ratio;
+                }
+            }
             $canvas.attr('height', image.height).attr('width', image.width);
             draw();
         };
@@ -57,8 +64,8 @@
                 e.offsetX = (e.pageX - $(e.target).offset().left);
                 e.offsetY = (e.pageY - $(e.target).offset().top);
             }
-            points[activePoint] = Math.round(e.offsetX);
-            points[activePoint + 1] = Math.round(e.offsetY);
+            points[activePoint] = Math.round(e.offsetX) * ratio;
+            points[activePoint + 1] = Math.round(e.offsetY) * ratio;
             draw();
         };
 
@@ -116,8 +123,8 @@
                 e.offsetX = (e.pageX - $(e.target).offset().left);
                 e.offsetY = (e.pageY - $(e.target).offset().top);
             }
-            x = e.offsetX;
-            y = e.offsetY;
+            x = e.offsetX * ratio;
+            y = e.offsetY * ratio;
 
             if (points.length >= 6) {
                 var c = getCenter();
@@ -195,7 +202,15 @@
         };
 
         record = function () {
-            $(input).val(points.join(','));
+            if (ratio === 1) {
+                $(input).val(points.join(','));
+            } else {
+                var tmp = [];
+                for (var i = 0; i < points.length; i++) {
+                    tmp[i] = Math.round(points[i] / ratio);
+                }
+                $(input).val(tmp.join(','));
+            }
         };
 
         getCenter = function () {
@@ -214,8 +229,8 @@
                 p2 = ptc[j];
                 f = p1.x * p2.y - p2.x * p1.y;
                 twicearea += f;
-                x += ( p1.x + p2.x ) * f;
-                y += ( p1.y + p2.y ) * f;
+                x += (p1.x + p2.x) * f;
+                y += (p1.y + p2.y) * f;
             }
             f = twicearea * 3;
             return {x: x / f, y: y / f};
@@ -250,14 +265,14 @@
         }
 
         if (o && !(o = function (x, y, x0, y0, x1, y1) {
-                if (!(x1 - x0)) return {x: x0, y: y};
-                else if (!(y1 - y0)) return {x: x, y: y0};
-                var left, tg = -1 / ((y1 - y0) / (x1 - x0));
-                return {
-                    x: left = (x1 * (x * tg - y + y0) + x0 * (x * -tg + y - y1)) / (tg * (x1 - x0) + y0 - y1),
-                    y: tg * left - tg * x + y
-                };
-            }(x, y, x0, y0, x1, y1), o.x >= Math.min(x0, x1) && o.x <= Math.max(x0, x1) && o.y >= Math.min(y0, y1) && o.y <= Math.max(y0, y1))) {
+            if (!(x1 - x0)) return {x: x0, y: y};
+            else if (!(y1 - y0)) return {x: x, y: y0};
+            var left, tg = -1 / ((y1 - y0) / (x1 - x0));
+            return {
+                x: left = (x1 * (x * tg - y + y0) + x0 * (x * -tg + y - y1)) / (tg * (x1 - x0) + y0 - y1),
+                y: tg * left - tg * x + y
+            };
+        }(x, y, x0, y0, x1, y1), o.x >= Math.min(x0, x1) && o.x <= Math.max(x0, x1) && o.y >= Math.min(y0, y1) && o.y <= Math.max(y0, y1))) {
             var l1 = lineLength(x, y, x0, y0), l2 = lineLength(x, y, x1, y1);
             return l1 > l2 ? l2 : l1;
         }
