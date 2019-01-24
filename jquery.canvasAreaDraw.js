@@ -36,13 +36,13 @@
 
         image = new Image();
         resize = function () {
-            if ($canvas[0].clientWidth !== image.naturalWidth) {
-                ratio = image.naturalWidth / $canvas[0].clientWidth;
+            if ($canvas[0].scrollWidth !== image.naturalWidth) {
+                ratio = $canvas[0].scrollWidth / image.naturalWidth;
                 for (var i = 0; i < points.length; i++) {
                     points[i] *= ratio;
                 }
             }
-            $canvas.attr('height', image.naturalHeight).attr('width', image.naturalWidth);
+            $canvas.attr('height', Math.round(image.naturalHeight * ratio)).attr('width', $canvas[0].scrollWidth);
             draw();
         };
         $(image).load(resize);
@@ -60,20 +60,12 @@
         };
 
         move = function (e) {
-            if (!e.offsetX) {
-                e.offsetX = (e.pageX - $(e.target).offset().left);
-                e.offsetY = (e.pageY - $(e.target).offset().top);
-            }
-            points[activePoint] = Math.round(e.offsetX) * ratio;
-            points[activePoint + 1] = Math.round(e.offsetY) * ratio;
+            points[activePoint] = Math.round(e.offsetX);
+            points[activePoint + 1] = Math.round(e.offsetY);
             draw();
         };
 
         moveall = function (e) {
-            if (!e.offsetX) {
-                e.offsetX = (e.pageX - $(e.target).offset().left);
-                e.offsetY = (e.pageY - $(e.target).offset().top);
-            }
             if (!startpoint) {
                 startpoint = {x: Math.round(e.offsetX), y: Math.round(e.offsetY)};
             }
@@ -94,10 +86,6 @@
 
         rightclick = function (e) {
             e.preventDefault();
-            if (!e.offsetX) {
-                e.offsetX = (e.pageX - $(e.target).offset().left);
-                e.offsetY = (e.pageY - $(e.target).offset().top);
-            }
             var x = e.offsetX, y = e.offsetY;
             for (var i = 0; i < points.length; i += 2) {
                 dis = Math.sqrt(Math.pow(x - points[i], 2) + Math.pow(y - points[i + 1], 2));
@@ -119,12 +107,8 @@
             }
 
             e.preventDefault();
-            if (!e.offsetX) {
-                e.offsetX = (e.pageX - $(e.target).offset().left);
-                e.offsetY = (e.pageY - $(e.target).offset().top);
-            }
-            x = e.offsetX * ratio;
-            y = e.offsetY * ratio;
+            x = e.offsetX;
+            y = e.offsetY;
 
             if (points.length >= 6) {
                 var c = getCenter();
@@ -160,7 +144,7 @@
                 }
             }
 
-            points.splice(insertAt, 0, Math.round(x), Math.round(y));
+            points.splice(insertAt, 0, x, y);
             activePoint = insertAt;
             $(this).on('mousemove', move);
 
@@ -198,7 +182,6 @@
             ctx.fillStyle = 'rgba(255,0,0,0.3)';
             ctx.fill();
             ctx.stroke();
-
         };
 
         record = function () {
@@ -281,4 +264,6 @@
             return Math.abs(a * x + b * y + c) / Math.sqrt(a * a + b * b);
         }
     };
+
+
 })(jQuery);
